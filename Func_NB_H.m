@@ -1,4 +1,6 @@
 function H = Func_NB_H(v1,v2,v3,v4,v5,v6)
+% A function that calculates the host population (before mixing)
+% Base Nicholson-Biley version
 
 Ho = v1;
 Hotot = v2;

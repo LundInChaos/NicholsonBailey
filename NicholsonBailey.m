@@ -1,9 +1,19 @@
-% Script for NB plots
+% A script to iterate populations of hosts and parasites using the Nicholson-
+% -Bailey model. It Includes three populations (genotypes) of hosts 
+% (aa, aA and AA) and three populations of parasites 
+% (bb, bB and BB) where  bB only infects aA etc. 
+% The mixing facors then determine how much genetic mixing there is in host
+% and parasite populations, normally 1 (complete mixing) for hosts and 
+% somewhere in between 0 and 1 for parasites.
+% The functions used are in the file "HostPar_funcs.py" and come from an artice
+% by Flatt, J. theor. Biol. (2001) 212, 345}354 (doi:10.1006/jtbi.2001.2380).
 
 K = 10;     % Host carrying capacity
 a = 0.45;   % paracite searching efficiency
 c = 1;      % fecundity, "parasite infection success"
 
+% Lambda is the base host growth factor. Here we let it vary between 1 and 50
+% like in the artice by Flatt et al.
 % Range of lambdas
 L1 = 1;
 L2 = 50;
@@ -18,6 +28,7 @@ N = 1000;
 
 H = zeros(3,N);     % Hosts
 P = zeros(3,N);     % Parasites
+
 % Starting densities
 H(1,1) = 4;        % Pop AA
 H(2,1) = 3;        % Pop Aa
@@ -35,14 +46,21 @@ Ptot = zeros(1,N);     % Parasites
 Htot(1) = H(1,1) + H(2,1) + H(3,1);        % Pop H
 Ptot(1) = P(1,1) + P(2,1) + P(3,1);        % Pop P
 
-% Mixing factors:
+% The mixing variable is calculated with the population densities:
+% Initial mixing variable:
 Hp = Func_NB_Mix(H(1,1),H(2,1),Htot(1));
 Pq = Func_NB_Mix(P(1,1),P(2,1),Ptot(1));
 
+% The following vectors are used to store the last population densities of 
+% each population. They are used to plot the bifurcation diagrams:
 % End values
 EN = 40;
 E = zeros(3,EN,(L2-1)/Ls+1);
 F = zeros(3,EN,(L2-1)/Ls+1);
+
+% These vectors store the populations for a certain lambda (Thelambda)
+% It is usefull for plotting and analysis purposes.
+Thelambda = 15;
 
 Hti1 = zeros(3,N);     % Hosts
 Hti2 = zeros(3,N);     % Hosts
@@ -60,6 +78,8 @@ Pti1(:,1) = P(1,1);
 Pti2(:,1) = P(2,1);
 Pti3(:,1) = P(3,1);
 
+% Just to have the initial conditions clearly written:
+
 disp(K)
 disp(a)
 disp(c)
@@ -70,14 +90,16 @@ disp(Pq)
 disp(SFH)
 disp(SFP)
 
+% For each parasite mixing factor
 for s = 1:3
+    % For each lambda
 for l = 1:(L2-1)/Ls+1
     lambda = 1 + ((l-1)*Ls);   % Chose a new lambda
-    % Calculate H and P:
     
+    % Calculate H and P:
     for n = 2:N
         for nn = 1:3
-            % First calculation:
+            % First calculation of populations:
             H(nn,n) = Func_NB_Hptot(H(nn,n-1),Htot(n-1),P(nn,n-1),lambda,K,a);
             P(nn,n) = Func_NB_P(H(nn,n-1),P(nn,n-1),a,c);
         end
@@ -89,15 +111,6 @@ for l = 1:(L2-1)/Ls+1
         Hp = Func_NB_Mix(H(1,n),H(2,n),Htot(n));
         Pq = Func_NB_Mix(P(1,n),P(2,n),Ptot(n));
         
-        if(lambda == 15)
-            Hti1(s,n) = H(1,n);
-            Hti2(s,n) = H(2,n);
-            Hti3(s,n) = H(3,n);
-            Pti1(s,n) = P(1,n);
-            Pti2(s,n) = P(2,n);
-            Pti3(s,n) = P(3,n);
-        end
-        
         % New pops:
         H(1,n) = (1-SFH)*H(1,n) +    SFH*    Hp^2        *Htot(n);
         H(2,n) = (1-SFH)*H(2,n) +    SFH*    2*Hp*(1-Hp) *Htot(n);
@@ -106,6 +119,16 @@ for l = 1:(L2-1)/Ls+1
         P(1,n) = (1-SFP(s))*P(1,n) + SFP(s)* Pq^2        *Ptot(n);
         P(2,n) = (1-SFP(s))*P(2,n) + SFP(s)* 2*Pq*(1-Pq) *Ptot(n);
         P(3,n) = (1-SFP(s))*P(3,n) + SFP(s)* (1-Pq)^2    *Ptot(n);
+        
+        % Store the populations of a certain lambda
+        if(lambda == Thelambda)
+            Hti1(s,n) = H(1,n);
+            Hti2(s,n) = H(2,n);
+            Hti3(s,n) = H(3,n);
+            Pti1(s,n) = P(1,n);
+            Pti2(s,n) = P(2,n);
+            Pti3(s,n) = P(3,n);
+        end
                 
         % New total pops:
         Htot(n) = H(1,n) + H(2,n) + H(3,n);
@@ -119,16 +142,7 @@ for l = 1:(L2-1)/Ls+1
 end
 end
 
-%plots
-Xvals = 1:1:N;
-Hon = 1:1:N;
-for n = 1:N
-    Hon(n) = Func_NB_HoHa(Hon(n),N);
-end
-
-%plot(Xvals,Hon)
-
-%{
+% More plots than you want:
 
 figure(1)
 plot(Xvals, Hti1(1,:), 'r');
@@ -196,8 +210,6 @@ xlabel('time')
 title('Populations, lambda = 15, s = 1')
 legend('Parasite1','Parasite2','Parasite3')
 
-%}
-
 lvals = L1:Ls:L2;
 
 figure(7)
@@ -235,4 +247,4 @@ title('Parasite mixing factor = 1')
 ylabel('Pop. dens.')
 xlabel('lambda')
 legend('Host','Parasite')
-%}
+
