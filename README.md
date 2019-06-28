@@ -8,6 +8,8 @@ The formulas used in these scripts were taken from the article ["A Bit of Sex St
 
 The results deviate a little from the results in the article, but similar conclusions about the stability can be made. It is up to future students/interested people to develop the scripts further.
 
+Cf. [*Report*](https://github.com/LundInChaos/NicholsonBailey/blob/master/Project_Chaos_v3.pdf) for more information.
+
 ## Developers
 
 H. Wallander, E. Andersson, Lund University.
